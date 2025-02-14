@@ -1,0 +1,113 @@
+!pip install Faker
+
+from faker import Faker
+import random
+from datetime import datetime, timedelta
+
+fake = Faker('pt_BR')  # Configurando para gerar dados em português (Brasil)
+
+# Função para gerar dados de clientes
+def gerar_clientes(num_registros):
+    clientes = []
+    for i in range(num_registros):
+        nome = fake.name()
+        sexo = random.choice(['M', 'F'])
+        idade = random.randint(18, 70)
+        endereco = fake.address().replace("\n", " ")
+        cidade = fake.city()
+        estado = fake.state_abbr()
+        pais = 'Brasil'
+        clientes.append(f"({i+1}, '{nome}', '{sexo}', {idade}, '{endereco}', '{cidade}', '{estado}', '{pais}')")  # ID serial
+    return clientes
+
+# Função para gerar dados de produtos
+def gerar_produtos(num_registros):
+    produtos = []
+    categorias = ['Eletrônicos', 'Eletrodomésticos', 'Móveis', 'Informática', 'Vestuário']
+    for i in range(num_registros):
+        nome = fake.word().capitalize() + " " + fake.word().capitalize()
+        categoria = random.choice(categorias)
+        preco = round(random.uniform(50, 5000), 2)
+        produtos.append(f"({i+1}, '{nome}', '{categoria}', {preco})")  # ID serial
+    return produtos
+
+# Função para gerar dados de vendedores (limite de 5 vendedores)
+def gerar_vendedores(num_registros):
+    vendedores = []
+    regioes = ['Sudeste', 'Sul', 'Nordeste', 'Centro-Oeste', 'Norte']
+    for i in range(5):  # Limite de 5 vendedores
+        nome = fake.name()
+        departamento = random.choice(['Vendas', 'Suporte', 'Atendimento'])
+        regiao = random.choice(regioes)
+        vendedores.append(f"({i+1}, '{nome}', '{departamento}', '{regiao}')")  # ID serial
+    return vendedores
+
+# Função para gerar dados de fornecedores
+def gerar_fornecedores(num_registros):
+    fornecedores = []
+    for i in range(num_registros):
+        nome = fake.company()
+        contato = fake.email()
+        endereco = fake.address().replace("\n", " ")
+        cidade = fake.city()
+        estado = fake.state_abbr()
+        pais = 'Brasil'
+        fornecedores.append(f"({i+1}, '{nome}', '{contato}', '{endereco}', '{cidade}', '{estado}', '{pais}')")  # ID serial
+    return fornecedores
+
+# Função para gerar dados de datas
+def gerar_datas(num_registros):
+    datas = []
+    base_data = datetime(2020, 1, 1)  # Data base a partir de 1º de Janeiro de 2020
+    for i in range(num_registros):
+        data = base_data + timedelta(days=i)  # Gerando datas consecutivas
+        datas.append(f"({i+1}, '{data.strftime('%Y-%m-%d')}')")  # ID serial
+    return datas
+
+# Função para gerar dados de vendas (com IDs consistentes de todas as tabelas)
+def gerar_vendas(num_registros, max_cliente, max_produto, max_vendedor, max_fornecedor, max_data):
+    vendas = []
+    for i in range(num_registros):
+        cliente_id = i + 1  # ID sequencial de 1 a 200
+        produto_id = i + 1  # ID sequencial de 1 a 200
+        data_id = i + 1  # ID sequencial de 1 a 200
+        vendedor_id = random.randint(1, 5)  # Limite de 5 vendedores
+        fornecedor_id = random.randint(1, max_fornecedor-1)  # ID de fornecedor sequencial
+        quantidade = random.randint(1, 10)
+        valor_total = round(random.uniform(100, 5000), 2)
+        vendas.append(f"({cliente_id}, {produto_id}, {data_id}, {vendedor_id}, {fornecedor_id}, {quantidade}, {valor_total})")
+    return vendas
+
+# Gerar os dados
+num_registros = 200
+clientes = gerar_clientes(num_registros)
+produtos = gerar_produtos(num_registros)
+vendedores = gerar_vendedores(num_registros)
+fornecedores = gerar_fornecedores(num_registros)
+datas = gerar_datas(num_registros)  # Gerando 200 datas
+vendas = gerar_vendas(num_registros, num_registros, num_registros, 5, num_registros, num_registros)
+
+# Criando os INSERTs em SQL
+print("-- Inserts para dCliente --")
+for cliente in clientes:
+    print(f"INSERT INTO dCliente (id, nome, sexo, idade, endereco, cidade, estado, pais) VALUES {cliente};")
+
+print("\n-- Inserts para dProduto --")
+for produto in produtos:
+    print(f"INSERT INTO dProduto (id, nome, categoria, preco) VALUES {produto};")
+
+print("\n-- Inserts para dVendedor --")
+for vendedor in vendedores:
+    print(f"INSERT INTO dVendedor (id, nome, departamento, regiao) VALUES {vendedor};")
+
+print("\n-- Inserts para dFornecedor --")
+for fornecedor in fornecedores:
+    print(f"INSERT INTO dFornecedor (id, nome, contato, endereco, cidade, estado, pais) VALUES {fornecedor};")
+
+print("\n-- Inserts para dData --")
+for data in datas:
+    print(f"INSERT INTO dData (id, data) VALUES {data};")
+
+print("\n-- Inserts para fVendas --")
+for venda in vendas:
+    print(f"INSERT INTO fVendas (cliente_id, produto_id, data_id, vendedor_id, fornecedor_id, quantidade, valor_total) VALUES {venda};")
